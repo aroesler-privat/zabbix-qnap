@@ -21,16 +21,6 @@ You have to add the jobs you want to monitor to the <code>JOBS</code>-array in t
 After doing this I suggest to do a dry-run to check what would happen. Assuming the file QNAP sends its log-messages to is /var/log/syslog the following is to be done:
 1. Make sure there are already jobs logged to the file. If this is not the case just start the jobs by hand.
 2. Call <code>./qnap-backup-monitor.sh --file=/var/log/syslog --import --dryrun</code>
-You should see something like this:
-> [...]
-> TS251_Sync_to_TS212 status 1546432143 "started"
-> TS251_Sync_to_TS212 error 1546432143 0
-> TS212_Sync_to_TS212 status 1546432141 "started"
-> TS212_Sync_to_TS212 error 1546432141 0
-> TS251_Sync_to_TS212 status 1546432353 "finished"
-> TS251_Sync_to_TS212 error 1546432353 0
-> TS251_Sync_to_TS212 last 1546432353 "Jan 2 13:32:33"
-> TS212_Sync_to_TS212 status 1546432351 "finished"
-> TS212_Sync_to_TS212 error 1546432351 0
-> TS212_Sync_to_TS212 last 1546432351 "Jan 2 13:32:31"
-> [...]
+You should see lots of lines like <code>TS251_Sync_to_TS212 status 1546432143 "started"</code>. Every line reflect what would be sent via zabbix_sender to Zabbix. The format of the first parameter is <code>QNAPHOST_BACKUPJOB</code>, whereby spaces are replaced by underscores. The QNAPHOST is grep'd from the logfile, while BACKUPJOB is one of the jobs you defined in the <code>JOBS</code>-array.
+
+Every <code>QNAPHOST_BACKUPJOB</code> needs to be a virtual Zabbix-host equiped with the 'template_qnap-backup-monitor'-template. To easy figure out the names of the hosts to be created you should call <code>./qnap-backup-monitor.sh --file=/var/log/syslog --hosts-to-create</code>
