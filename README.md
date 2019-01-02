@@ -23,4 +23,28 @@ After doing this I suggest to do a dry-run to check what would happen. Assuming 
 2. Call <code>./qnap-backup-monitor.sh --file=/var/log/syslog --import --dryrun</code>
 You should see lots of lines like <code>TS251_Sync_to_TS212 status 1546432143 "started"</code>. Every line reflect what would be sent via zabbix_sender to Zabbix. The format of the first parameter is <code>QNAPHOST_BACKUPJOB</code>, whereby spaces are replaced by underscores. The QNAPHOST is grep'd from the logfile, while BACKUPJOB is one of the jobs you defined in the <code>JOBS</code>-array.
 
-Every <code>QNAPHOST_BACKUPJOB</code> needs to be a virtual Zabbix-host equiped with the 'template_qnap-backup-monitor'-template. To easy figure out the names of the hosts to be created you should call <code>./qnap-backup-monitor.sh --file=/var/log/syslog --hosts-to-create</code>
+Now download the template (template_qnap-backup-monitor.xml) and add it to your Zabbix via Configuration -> Templates -> Import. Every <code>QNAPHOST_BACKUPJOB</code> needs to be a virtual Zabbix-host equiped with this template. To easy figure out the names of the hosts to be created you should call <code>./qnap-backup-monitor.sh --file=/var/log/syslog --hosts-to-create</code>.
+
+### Populate the Zabbix-hosts with existing data
+If you want to import existing data to Zabbix call <code>./qnap-backup-monitor.sh --file=/var/log/syslog --import</code>. 
+
+### Create systemd-service
+Create <code>/etc/systemd/system/qnap-backup-monitor.service</code> ...
+```
+[Unit]
+Description=Backup-Monitor for log-entries by QNAP / rsyslog
+After=getty.target
+
+[Service]
+ExecStart=/usr/share/zabbix-scripts/qnap-backup-monitor.sh --file=/var/log/syslog
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+... and activate it via <code>systemctl daemon-reload</code>, <code>systemctl enable qnap-backup-monitor.service</code> and <code>systemctl start qnap-backup-monitor.service</code>.
+
+This will start the script monitoring /var/log/syslog. Whenever the script ends / is killed it is restarted.
+
+### Take care on log-rotation
+When the logfile gets rotated the script has to be aligned to the new file-handle. This is easiest done by just killing it or calling <code>systemctl restart qnap-backup-monitor.service</code>. To kill it during logrotation simply add <code>kill `cat /var/run/qnap-backup-monitor.sh.pid`</code> to the <code>postrotate</code>-section of your logrotation-config.
