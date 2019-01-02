@@ -48,3 +48,12 @@ This will start the script monitoring /var/log/syslog. Whenever the script ends 
 
 ### Take care on log-rotation
 When the logfile gets rotated the script has to be aligned to the new file-handle. This is easiest done by just killing it or calling <code>systemctl restart qnap-backup-monitor.service</code>. To kill it during logrotation simply add <code>kill `cat /var/run/qnap-backup-monitor.sh.pid`</code> to the <code>postrotate</code>-section of your logrotation-config.
+
+### Jobs older then 24h
+By default Zabbix' <code>last()</code>-command only shows events happened in the last 24h. As there are weekly or even monthly backup-jobs it makes sense to raise this time. This could be done in <code>/usr/share/zabbix/include/defines.inc.php</code>:
+```
+// the maximum period to display history data for the latest data and item overview pages in seconds
+// by default set to 86400 seconds (24 hours)
+// define('ZBX_HISTORY_PERIOD', 86400);
+define('ZBX_HISTORY_PERIOD', 1814400);
+```
